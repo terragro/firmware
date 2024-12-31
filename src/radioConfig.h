@@ -1,0 +1,6 @@
+#define RADIO_FREQ 850.0
+#define RADIO_BW 125.0
+#define RADIO_SF 6
+#define RADIO_CR 5
+#define RADIO_SYNC_WORD 0x34
+#define RADIO_OUTPUT_POWER 22
