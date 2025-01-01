@@ -1,7 +1,7 @@
 #include <SSD1306Wire.h>
 #include <RadioLib.h>
 #include "LoRaBoards.h"
-#include "radioConfig.h"
+#include "../shared/radio.h"
 
 /* SSD1306Wire display(0x3c, I2C_SDA, I2C_SCL); */
 
