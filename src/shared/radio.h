@@ -35,5 +35,8 @@ public:
     bool ready = false;
     PacketQueue queue = PacketQueue();
 
-    int begin();
+    uint16_t begin();
+    uint16_t transmit(String payload);
+
+    void cleanup();
 };

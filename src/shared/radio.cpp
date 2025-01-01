@@ -19,14 +19,20 @@ void processReceived()
     instance.queue.push(str);
 }
 
-int Radio::begin()
+bool transmitted = false;
+
+void processTransmitDone()
+{
+    transmitted = true;
+}
+
+uint16_t Radio::begin()
 {
     int state = this->radio.begin(RADIO_FREQ, RADIO_BW, RADIO_SF, RADIO_CR, RADIO_SYNC_WORD, RADIO_OUTPUT_POWER);
     if (state != RADIOLIB_ERR_NONE)
         return state;
 
     this->radio.setPacketReceivedAction(processReceived);
-    // this->radio.setPacketSentAction((*this).setTransmittedFlag);
 
     state = this->radio.startReceive();
     if (state != RADIOLIB_ERR_NONE)
@@ -34,4 +40,27 @@ int Radio::begin()
 
     this->ready = true;
     return RADIOLIB_ERR_NONE;
+}
+
+uint16_t Radio::transmit(String payload)
+{
+    // queue if not ready yet
+    this->radio.setPacketSentAction(processTransmitDone);
+    int state = this->radio.startTransmit(payload);
+    if (state != RADIOLIB_ERR_NONE)
+        return state;
+
+    this->ready = false;
+    return RADIOLIB_ERR_NONE;
+}
+
+void Radio::cleanup()
+{
+    if (transmitted)
+    {
+        transmitted = false;
+        int state = this->radio.finishTransmit(); // check if succesfull, otherwise try again
+        this->ready = true;
+        this->radio.setPacketReceivedAction(processReceived);
+    }
 }
