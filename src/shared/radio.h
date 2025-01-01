@@ -1,6 +1,6 @@
 #include <RadioLib.h>
-#include <vector>
-using std::vector;
+#include "queue.h"
+#include "LoRaBoards.h"
 
 #define RADIO_FREQ 850.0
 #define RADIO_BW 125.0
@@ -16,9 +16,13 @@ private:
 
     Radio() {}
 
+    // Delete copy constructor and assignment operator
+    Radio(const Radio &) = delete;
+    Radio &operator=(const Radio &) = delete;
+
 public:
     // static side
-    static Radio getInstance()
+    static Radio &getInstance()
     {
         if (!instance)
             instance = new Radio();
@@ -29,7 +33,7 @@ public:
     // instance side
     SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
     bool ready = false;
-    vector<String> receivedQueue = {};
+    PacketQueue queue = PacketQueue();
 
     int begin();
 };
