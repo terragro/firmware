@@ -16,14 +16,15 @@ void processReceived()
         // Save or throw err or smth? prob via a method on Radio class
     }
 
-    instance.queue.push(str);
+    instance.received.push(str);
 }
 
-bool transmitted = false;
+bool transmittedFlag = false;
+String transmitted = "";
 
 void processTransmitDone()
 {
-    transmitted = true;
+    transmittedFlag = true;
 }
 
 uint16_t Radio::begin()
@@ -46,6 +47,7 @@ uint16_t Radio::transmit(String payload)
 {
     // queue if not ready yet
     this->radio.setPacketSentAction(processTransmitDone);
+    transmitted = payload;
     int state = this->radio.startTransmit(payload);
     if (state != RADIOLIB_ERR_NONE)
         return state;
@@ -56,10 +58,13 @@ uint16_t Radio::transmit(String payload)
 
 void Radio::cleanup()
 {
-    if (transmitted)
+    if (transmittedFlag)
     {
-        transmitted = false;
-        int state = this->radio.finishTransmit(); // check if succesfull, otherwise try again
+        transmittedFlag = false;
+        int state = this->radio.finishTransmit();
+        if (state == RADIOLIB_ERR_NONE)
+        {
+        }
         this->ready = true;
         this->radio.setPacketReceivedAction(processReceived);
     }

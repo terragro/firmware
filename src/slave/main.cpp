@@ -46,9 +46,9 @@ void loop()
 {
     radio.cleanup();
 
-    if (radio.queue.size() > 0)
+    if (radio.received.size() > 0)
     {
-        String packet = radio.queue.shift();
+        String packet = radio.received.shift();
         Serial.print("Processed packet: ");
         Serial.println(packet);
 
