@@ -44,7 +44,7 @@ bool pressed = false;
 
 void loop()
 {
-    radio.cleanup();
+    radio.process();
 
     if (radio.received.size() > 0)
     {

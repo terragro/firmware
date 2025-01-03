@@ -33,10 +33,10 @@ public:
     // instance side
     SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
     bool ready = false;
-    PacketQueue received = PacketQueue();
+    PacketQueue received = PacketQueue(); // use builtin queue type
 
     uint16_t begin();
     uint16_t transmit(String payload);
 
-    void cleanup();
+    void process();
 };

@@ -56,7 +56,7 @@ uint16_t Radio::transmit(String payload)
     return RADIOLIB_ERR_NONE;
 }
 
-void Radio::cleanup()
+void Radio::process()
 {
     if (transmittedFlag)
     {
