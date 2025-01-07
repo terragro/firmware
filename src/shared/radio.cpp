@@ -2,21 +2,11 @@
 
 Radio *Radio::instance = nullptr;
 
+bool receivedFlag = false;
+
 void processReceived()
 {
-    Radio &instance = Radio::getInstance();
-
-    String str;
-    int state = instance.radio.readData(str);
-    if (state != RADIOLIB_ERR_NONE)
-    {
-        Serial.print("Error processing packet: ");
-        Serial.println(state);
-        return;
-        // Save or throw err or smth? prob via a method on Radio class
-    }
-
-    instance.received.push(str);
+    receivedFlag = true;
 }
 
 bool transmittedFlag = false;
@@ -58,14 +48,30 @@ uint16_t Radio::transmit(String payload)
 
 void Radio::process()
 {
+    if (receivedFlag)
+    {
+        receivedFlag = false;
+        String str;
+        int state = radio.readData(str);
+        if (state == RADIOLIB_ERR_NONE)
+        {
+            instance->received.push(str);
+        }
+        else
+        {
+            Serial.print("Error processing packet: ");
+            Serial.println(state);
+        }
+    }
+
     if (transmittedFlag)
     {
         transmittedFlag = false;
         int state = this->radio.finishTransmit();
         if (state == RADIOLIB_ERR_NONE)
         {
+            this->ready = true;
+            this->radio.setPacketReceivedAction(processReceived);
         }
-        this->ready = true;
-        this->radio.setPacketReceivedAction(processReceived);
     }
 }
