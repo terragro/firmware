@@ -4,28 +4,28 @@ namespace Packet
 {
     using Address = uint16_t;
 
-    class PacketHeader
+    class Header
     {
     public:
         // Creates a packet header to send to the specified address
-        static PacketHeader toAddress(Address destination, PacketHeaderFlags flags)
+        static Header toAddress(Address destination, HeaderFlags flags)
         {
-            PacketHeader header;
+            Header header;
             header.destination = destination;
             header.flags = flags;
             return header;
         }
 
         // Creates a packet header to send to the gateway node (address: 0x0000)
-        static PacketHeader toGateway(PacketHeaderFlags flags)
+        static Header toGateway(HeaderFlags flags)
         {
-            return PacketHeader::toAddress(0x0000, flags);
+            return Header::toAddress(0x0000, flags);
         }
 
         Address destination;
         Address sender;
         uint32_t packetID;
-        PacketHeaderFlags flags;
+        HeaderFlags flags;
 
         // Use uint128?
         // Returns a string with length 12, with all the header data packed in
@@ -59,12 +59,12 @@ namespace Packet
         }
     };
 
-    class PacketHeaderFlags
+    class HeaderFlags
     {
     public:
-        static PacketHeaderFlags from(uint8_t raw)
+        static HeaderFlags from(uint8_t raw)
         {
-            PacketHeaderFlags flags;
+            HeaderFlags flags;
             flags.hops = raw & 0b111;
             flags.maxHops = (raw >> 3) & 0b111;
             flags.ack = (raw >> 6) & 0b1;

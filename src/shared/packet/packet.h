@@ -14,7 +14,7 @@ namespace Packet
         static Packet from(String rawPacket);
 
         // instance side
-        PacketHeader header;
+        Header header;
         String payload;
     };
 }
