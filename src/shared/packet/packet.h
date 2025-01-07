@@ -11,10 +11,12 @@ namespace Packet
 
     public:
         // Creates a Packet instance from the raw packet
-        static Packet from(String rawPacket);
+        static Result<Packet, String> from(String rawPacket);
 
         // Static initializers
-        static Packet ack(Address sender, Address destination)
+
+        // Creates a simple ACK message to `destination`
+        static Result<Packet, void *> ack(Address sender, Address destination)
         {
             HeaderFlags flags;
             flags.ack = false;
@@ -24,11 +26,21 @@ namespace Packet
             packet.header = Header::toAddress(sender, destination, flags, ACK);
             packet.payload = payload;
 
-            return packet;
+            return {packet, nullptr};
         }
 
         // instance side
+
         Header header;
         Payload payload;
+        unsigned long timestamp;
+
+        String encode()
+        {
+            String _header = header.encode();
+            String _payload = payload.encode();
+
+            return _header + _payload;
+        }
     };
 }

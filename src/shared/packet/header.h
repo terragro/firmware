@@ -1,9 +1,38 @@
 #include <RadioLib.h>
 #include "payload.h"
+#include "types.h"
 
 namespace Packet
 {
-    using Address = uint16_t;
+    class HeaderFlags
+    {
+    public:
+        static HeaderFlags from(uint8_t raw)
+        {
+            HeaderFlags flags;
+            flags.hops = raw & 0b111;
+            flags.maxHops = (raw >> 3) & 0b111;
+            flags.ack = (raw >> 6) & 0b1;
+            flags.rebroadcast = (raw >> 7) & 0b1;
+
+            return flags;
+        }
+
+        uint8_t hops = 0;           // The current amount of hops, max of 3 bits
+        uint8_t maxHops = 3;        // The maximum amount of hops, defaults to 3, max of 3 bits
+        boolean ack = true;         // If the receiver should send back an ACK
+        boolean rebroadcast = true; // If the message should be rebroadcasted by other nodes
+
+        uint8_t encode()
+        {
+            // Err if more than 3 bits?
+            hops &= 0b111;
+            maxHops &= 0b111;
+
+            uint8_t result = hops | (maxHops << 3) | (ack << 6) | (rebroadcast << 7);
+            return result;
+        }
+    };
 
     class Header
     {
@@ -62,36 +91,6 @@ namespace Packet
             str[11] = 0;
 
             return str;
-        }
-    };
-
-    class HeaderFlags
-    {
-    public:
-        static HeaderFlags from(uint8_t raw)
-        {
-            HeaderFlags flags;
-            flags.hops = raw & 0b111;
-            flags.maxHops = (raw >> 3) & 0b111;
-            flags.ack = (raw >> 6) & 0b1;
-            flags.rebroadcast = (raw >> 7) & 0b1;
-
-            return flags;
-        }
-
-        uint8_t hops = 0;           // The current amount of hops, max of 3 bits
-        uint8_t maxHops = 3;        // The maximum amount of hops, defaults to 3, max of 3 bits
-        boolean ack = true;         // If the receiver should send back an ACK
-        boolean rebroadcast = true; // If the message should be rebroadcasted by other nodes
-
-        uint8_t encode()
-        {
-            // Err if more than 3 bits?
-            hops &= 0b111;
-            maxHops &= 0b111;
-
-            uint8_t result = hops | (maxHops << 3) | (ack << 6) | (rebroadcast << 7);
-            return result;
         }
     };
 }
