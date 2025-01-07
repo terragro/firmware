@@ -1,4 +1,5 @@
 #include <RadioLib.h>
+#include "packet/packet.h"
 #include "queue.h"
 #include "LoRaBoards.h"
 
@@ -32,6 +33,7 @@ public:
 
     // instance side
     SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
+    Packet::Address address;
     bool ready = false;
     PacketQueue received = PacketQueue(); // use builtin queue type
 

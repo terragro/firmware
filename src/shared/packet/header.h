@@ -1,4 +1,5 @@
 #include <RadioLib.h>
+#include "payload.h"
 
 namespace Packet
 {
@@ -8,24 +9,27 @@ namespace Packet
     {
     public:
         // Creates a packet header to send to the specified address
-        static Header toAddress(Address destination, HeaderFlags flags)
+        static Header toAddress(Address sender, Address destination, HeaderFlags flags, PayloadType type)
         {
             Header header;
             header.destination = destination;
             header.flags = flags;
+            header.payloadType = type;
+
             return header;
         }
 
         // Creates a packet header to send to the gateway node (address: 0x0000)
-        static Header toGateway(HeaderFlags flags)
+        static Header toGateway(Address sender, HeaderFlags flags, PayloadType type)
         {
-            return Header::toAddress(0x0000, flags);
+            return Header::toAddress(sender, 0x0000, flags, type);
         }
 
         Address destination;
         Address sender;
         uint32_t packetID;
         HeaderFlags flags;
+        PayloadType payloadType;
 
         // Use uint128?
         // Returns a string with length 12, with all the header data packed in
@@ -50,8 +54,10 @@ namespace Packet
             // Flags
             str[8] = flags.encode();
 
+            // Payload type
+            str[9] = payloadType & 0xff;
+
             // Padding
-            str[9] = 0;
             str[10] = 0;
             str[11] = 0;
 
