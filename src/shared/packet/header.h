@@ -37,6 +37,27 @@ namespace Packet
     class Header
     {
     public:
+        static Header from(String raw)
+        {
+            Header parsed;
+            parsed.destination =
+                (static_cast<uint8_t>(raw[1]) << 8) |
+                static_cast<uint8_t>(raw[0]);
+
+            parsed.sender =
+                (static_cast<uint8_t>(raw[3]) << 8) |
+                static_cast<uint8_t>(raw[2]);
+
+            parsed.packetID =
+                (static_cast<uint8_t>(raw[7]) << 24) |
+                static_cast<uint8_t>(raw[6] << 16) |
+                (static_cast<uint8_t>(raw[5]) << 8) |
+                static_cast<uint8_t>(raw[4]);
+
+            parsed.flags = HeaderFlags::from(raw[8]);
+            parsed.payloadType = static_cast<PayloadType>(raw[9]);
+        }
+
         // Creates a packet header to send to the specified address
         static Header toAddress(Address sender, Address destination, HeaderFlags flags, PayloadType type)
         {
@@ -64,7 +85,7 @@ namespace Packet
         // Returns a string with length 12, with all the header data packed in
         String encode()
         {
-            String str;
+            char str[12];
 
             // Destination address
             str[0] = destination & 0xff;
@@ -90,7 +111,7 @@ namespace Packet
             str[10] = 0;
             str[11] = 0;
 
-            return str;
+            return String(str);
         }
     };
 }
