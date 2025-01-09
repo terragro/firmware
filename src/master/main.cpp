@@ -5,14 +5,7 @@
 
 /* SSD1306Wire display(0x3c, I2C_SDA, I2C_SCL); */
 
-SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
-
-volatile bool transmitted = false;
-
-void setFlag(void)
-{
-    transmitted = true;
-}
+Radio &radio = Radio::getInstance();
 
 void setupErr()
 {
@@ -34,11 +27,9 @@ void setupErr()
 void setup()
 {
     setupBoards();
-    /* display.init();
-    display.flipScreenVertically(); */
     delay(1500);
 
-    int state = radio.begin(RADIO_FREQ, RADIO_BW, RADIO_SF, RADIO_CR, RADIO_SYNC_WORD, RADIO_OUTPUT_POWER);
+    int state = radio.begin(0x00);
     if (state != RADIOLIB_ERR_NONE)
     {
         Serial.print("LoRa initialization failed, code: ");
@@ -46,31 +37,32 @@ void setup()
         setupErr();
     }
 
-    radio.setPacketSentAction(setFlag);
-
     Serial.println("LoRa board succesfully initialized");
-
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
 bool pressed = false;
-bool ready = true;
 
 void loop()
 {
-    if (transmitted)
+    radio.process();
+
+    if (radio.received.size() > 0)
     {
-        transmitted = false;
-        ready = true;
-        radio.finishTransmit();
+        String packet = radio.received.shift();
+        Serial.print("Processed packet: ");
+        Serial.println(packet);
+
+        digitalWrite(BOARD_LED, LOW);
+        delay(100);
+        digitalWrite(BOARD_LED, HIGH);
     }
 
     int state = digitalRead(BUTTON_PIN);
     if (state == LOW && pressed == false)
     {
         pressed = true;
-        if (ready)
-            radio.startTransmit("LoRa test!!");
+        if (radio.ready)
+            radio.transmit("Hello world");
     }
     else if (state == HIGH)
     {

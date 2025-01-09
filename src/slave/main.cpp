@@ -29,7 +29,7 @@ void setup()
     setupBoards();
     delay(1500);
 
-    int state = radio.begin();
+    int state = radio.begin(0x01);
     if (state != RADIOLIB_ERR_NONE)
     {
         Serial.print("LoRa initialization failed, code: ");
@@ -48,9 +48,9 @@ void loop()
 
     if (radio.received.size() > 0)
     {
-        String packet = radio.received.shift();
-        Serial.print("Processed packet: ");
-        Serial.println(packet);
+        Packet::Packet &packet = radio.received.front();
+        radio.received.pop();
+        Serial.print("Processed packet");
 
         digitalWrite(BOARD_LED, LOW);
         delay(100);
@@ -61,11 +61,13 @@ void loop()
     if (state == LOW && pressed == false)
     {
         pressed = true;
-        if (radio.ready)
-            radio.transmit("Hello world");
+        /* if (radio.ready)
+            radio.transmit("Hello world"); */
     }
     else if (state == HIGH)
     {
         pressed = false;
     }
+
+    // delay(100);
 }

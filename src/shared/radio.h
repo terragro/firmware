@@ -1,7 +1,11 @@
+#include <queue>
+#include <deque>
 #include <RadioLib.h>
 #include "packet/packet.h"
 #include "queue.h"
 #include "LoRaBoards.h"
+
+using namespace std;
 
 #define RADIO_FREQ 850.0
 #define RADIO_BW 125.0
@@ -10,16 +14,28 @@
 #define RADIO_SYNC_WORD 0x34
 #define RADIO_OUTPUT_POWER 22
 
+#define TRANSMIT_TIMEOUT 3000
+
+enum RADIO_STATE
+{
+    RADIO_IDLE = 0,  // same as READY
+    RADIO_READY = 0, // same as IDLE
+    RADIO_TRANSMITTING = 1,
+};
+
 class Radio
 {
 private:
     static Radio *instance;
 
-    Radio() {}
-
     // Delete copy constructor and assignment operator
+    Radio() {}
     Radio(const Radio &) = delete;
     Radio &operator=(const Radio &) = delete;
+
+    deque<Packet::Packet> transmitQueue;
+
+    uint16_t transmitInternal(Packet::Packet packet);
 
 public:
     // static side
@@ -33,12 +49,14 @@ public:
 
     // instance side
     SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
-    Packet::Address address;
+    Packet::Address address = 0x00;
+    RADIO_STATE state = RADIO_IDLE;
     bool ready = false;
-    PacketQueue received = PacketQueue(); // use builtin queue type
 
-    uint16_t begin();
-    uint16_t transmit(String payload);
+    queue<Packet::Packet> received;
+
+    uint16_t begin(Packet::Address address);
+    uint16_t transmit(Packet::Packet packet);
 
     void process();
 };
