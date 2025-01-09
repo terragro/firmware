@@ -1,25 +1,24 @@
 #include <RadioLib.h>
+#include "types.h"
+#include "header.h"
 
 namespace Packet
 {
-    enum PayloadType
-    {
-        ACK = 0,
-        MESSAGE = 1,
-    };
-
     struct Payload
     {
-        String encode();
+        String encode()
+        {
+            return emptyString;
+        }
         PayloadType type;
     };
 
     struct ACKPayload : Payload
     {
-        static ACKPayload from(String raw)
+        static Result<ACKPayload, ERR_CODE> from(String raw)
         {
             ACKPayload payload;
-            return payload;
+            return {payload, ERR_NONE};
         }
 
         PayloadType type = ACK;
@@ -32,11 +31,11 @@ namespace Packet
 
     struct MessagePayload : Payload
     {
-        static MessagePayload from(String raw)
+        static Result<MessagePayload, ERR_CODE> from(String raw)
         {
             MessagePayload payload;
             payload.data = raw;
-            return payload;
+            return {payload, ERR_NONE};
         }
 
         PayloadType type = MESSAGE;
@@ -47,4 +46,6 @@ namespace Packet
             return data;
         }
     };
+
+    Result<Payload, ERR_CODE> parsePayload(Header header, String raw);
 }
