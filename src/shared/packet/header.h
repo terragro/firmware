@@ -1,6 +1,4 @@
 #include <RadioLib.h>
-#include "payload.h"
-#include "types.h"
 
 namespace Packet
 {
@@ -56,6 +54,8 @@ namespace Packet
 
             parsed.flags = HeaderFlags::from(raw[8]);
             parsed.payloadType = static_cast<PayloadType>(raw[9]);
+
+            return parsed;
         }
 
         // Creates a packet header to send to the specified address
