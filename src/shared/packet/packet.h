@@ -23,7 +23,7 @@ namespace Packet
         // Creates a Packet instance from the raw packet
         static Result<Packet, ERR_CODE> from(String raw)
         {
-            if (raw.length() < 12)
+            if (sizeof(raw) < 12)
                 return {Packet{}, ERR_INVALID_RAW_DATA};
 
             Header header = Header::from(raw);

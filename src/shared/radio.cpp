@@ -74,7 +74,7 @@ void Radio::process()
 
         String str;
         int state = radio.readData(str);
-        if (state != RADIOLIB_ERR_NONE)
+        if (state == RADIOLIB_ERR_NONE)
         {
             Packet::Result<Packet::Packet, Packet::ERR_CODE> res = Packet::Packet::from(str);
             Packet::Packet packet = res.first;
