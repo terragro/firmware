@@ -2,18 +2,19 @@
 
 Radio *Radio::instance = nullptr;
 
-bool receivedFlag = false;
+bool interrupt = false;
 
-void processReceived()
+void setFlag()
 {
-    receivedFlag = true;
+    interrupt = true;
 }
 
-bool transmittedFlag = false;
-
-void processTransmitDone()
+void printStr(String str)
 {
-    transmittedFlag = true;
+    for (int i = 0; i < sizeof(str); i++)
+        printf("%02X ", (unsigned char)str[i]);
+
+    printf("\n");
 }
 
 uint16_t Radio::begin(Packet::Address address)
@@ -23,7 +24,7 @@ uint16_t Radio::begin(Packet::Address address)
     if (state != RADIOLIB_ERR_NONE)
         return state;
 
-    this->radio.setPacketReceivedAction(processReceived);
+    this->radio.setDio1Action(setFlag);
 
     state = this->radio.startReceive();
     if (state != RADIOLIB_ERR_NONE)
@@ -35,15 +36,17 @@ uint16_t Radio::begin(Packet::Address address)
 
 uint16_t Radio::transmitInternal(Packet::Packet packet)
 {
-    this->radio.setPacketSentAction(processTransmitDone);
     String raw = packet.encode();
     packet.timestamp = millis();
+    Serial.println("Transmitting packet...");
+    printStr(raw);
     int state = this->radio.startTransmit(raw);
     if (state != RADIOLIB_ERR_NONE)
     {
         packet.state = Packet::PACKET_TRANSMITTING_FAILED;
         Serial.print("Error transmitting packet: ");
         Serial.println(state);
+        this->radio.startReceive();
         return state;
     }
 
@@ -68,57 +71,70 @@ uint16_t Radio::transmit(Packet::Packet packet)
 
 void Radio::process()
 {
-    if (receivedFlag)
+    if (interrupt)
     {
-        receivedFlag = false;
+        interrupt = false;
 
-        String str;
-        int state = radio.readData(str);
-        if (state == RADIOLIB_ERR_NONE)
+        if (this->state == RADIO_TRANSMITTING && this->transmitQueue.size() == 0)
         {
-            Packet::Result<Packet::Packet, Packet::ERR_CODE> res = Packet::Packet::from(str);
-            Packet::Packet packet = res.first;
-            Packet::ERR_CODE err = res.second;
-            if (err == Packet::ERR_NONE)
-                instance->received.push(packet);
-            else
+            this->state == RADIO_IDLE;
+            this->radio.startReceive();
+        }
+        else if (this->state == RADIO_TRANSMITTING)
+        {
+            Packet::Packet packet = this->transmitQueue.front();
+            packet.state = Packet::PACKET_TRANSMITTED;
+            int state = this->radio.finishTransmit();
+            if (state != RADIOLIB_ERR_NONE)
             {
-                Serial.print("Error parsing packet, internal err: ");
-                Serial.println(err);
+                // Retry if failed?
+                packet.state = Packet::PACKET_TRANSMITTING_FAILED;
+                Serial.print("Error transmitting packet, Radiolib err: ");
+                Serial.println(state);
             }
+            else
+                Serial.println("Transmitting succesfull");
+
+            this->transmitQueue.pop_front();
+            this->state = RADIO_IDLE;
+            this->radio.startReceive();
         }
         else
         {
-            Serial.print("Error processing packet, Radiolib err: ");
-            Serial.println(state);
+            String str;
+            int state = radio.readData(str);
+            if (state == RADIOLIB_ERR_NONE)
+            {
+                printStr(str);
+                Packet::Result<Packet::Packet, Packet::ERR_CODE> res = Packet::Packet::from(str);
+                Packet::Packet packet = res.first;
+                Packet::ERR_CODE err = res.second;
+                if (err == Packet::ERR_NONE)
+                {
+                    instance->received.push(packet);
+                    Serial.println("Succesfully parsed packet");
+                }
+                else
+                {
+                    Serial.print("Error parsing packet, internal err: ");
+                    Serial.println(err);
+                }
+            }
+            else
+            {
+                Serial.print("Error processing packet, Radiolib err: ");
+                Serial.println(state);
+            }
+
+            this->radio.startReceive();
         }
-    }
-
-    if (transmittedFlag)
-    {
-        transmittedFlag = false;
-
-        Packet::Packet packet = this->transmitQueue.front();
-        packet.state = Packet::PACKET_TRANSMITTED;
-        int state = this->radio.finishTransmit();
-        if (state != RADIOLIB_ERR_NONE)
-        {
-            // Retry if failed?
-            packet.state = Packet::PACKET_TRANSMITTING_FAILED;
-            Serial.print("Error transmitting packet, Radiolib err: ");
-            Serial.println(state);
-        }
-
-        this->state = RADIO_IDLE;
-        this->radio.setPacketReceivedAction(processReceived);
-        this->transmitQueue.pop_front();
     }
 
     // Flush queued items, if any
     if (!this->transmitQueue.empty())
     {
         Packet::Packet queued = this->transmitQueue.front();
-        if (queued.state == Packet::PACKET_QUEUED)
+        if (queued.state == Packet::PACKET_QUEUED && this->state == RADIO_IDLE)
             this->transmitInternal(queued);
         else if (queued.state == Packet::PACKET_TRANSMITTING)
         {

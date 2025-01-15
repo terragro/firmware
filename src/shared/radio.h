@@ -51,7 +51,6 @@ public:
     SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
     Packet::Address address = 0x00;
     RADIO_STATE state = RADIO_IDLE;
-    bool ready = false;
 
     queue<Packet::Packet> received;
 
