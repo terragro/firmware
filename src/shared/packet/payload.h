@@ -1,10 +1,13 @@
+#include <variant>
+#include <iostream>
 #include <RadioLib.h>
-#include "types.h"
 #include "header.h"
 
 namespace Packet
 {
-    struct Payload
+    using Payload = std::variant<ACKPayload, MessagePayload>;
+
+    struct BasePayload
     {
         String encode()
         {
@@ -13,7 +16,7 @@ namespace Packet
         PayloadType type;
     };
 
-    struct ACKPayload : Payload
+    struct ACKPayload : BasePayload
     {
         static Result<ACKPayload, ERR_CODE> from(String raw)
         {
@@ -29,7 +32,7 @@ namespace Packet
         }
     };
 
-    struct MessagePayload : Payload
+    struct MessagePayload : BasePayload
     {
         static Result<MessagePayload, ERR_CODE> from(String raw)
         {

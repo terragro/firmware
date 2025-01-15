@@ -1,73 +1,29 @@
 #include <RadioLib.h>
+#include "types.h"
 
 namespace Packet
 {
     class HeaderFlags
     {
     public:
-        static HeaderFlags from(uint8_t raw)
-        {
-            HeaderFlags flags;
-            flags.hops = raw & 0b111;
-            flags.maxHops = (raw >> 3) & 0b111;
-            flags.ack = (raw >> 6) & 0b1;
-            flags.rebroadcast = (raw >> 7) & 0b1;
-
-            return flags;
-        }
+        static HeaderFlags from(uint8_t raw);
+        HeaderFlags() {}
 
         uint8_t hops = 0;           // The current amount of hops, max of 3 bits
         uint8_t maxHops = 3;        // The maximum amount of hops, defaults to 3, max of 3 bits
         boolean ack = true;         // If the receiver should send back an ACK
         boolean rebroadcast = true; // If the message should be rebroadcasted by other nodes
 
-        uint8_t encode()
-        {
-            // Err if more than 3 bits?
-            hops &= 0b111;
-            maxHops &= 0b111;
-
-            uint8_t result = hops | (maxHops << 3) | (ack << 6) | (rebroadcast << 7);
-            return result;
-        }
+        uint8_t encode();
     };
 
     class Header
     {
     public:
-        static Header from(String raw)
-        {
-            Header parsed;
-            parsed.destination =
-                (static_cast<uint8_t>(raw[1]) << 8) |
-                static_cast<uint8_t>(raw[0]);
-
-            parsed.sender =
-                (static_cast<uint8_t>(raw[3]) << 8) |
-                static_cast<uint8_t>(raw[2]);
-
-            parsed.packetID =
-                (static_cast<uint8_t>(raw[7]) << 24) |
-                static_cast<uint8_t>(raw[6] << 16) |
-                (static_cast<uint8_t>(raw[5]) << 8) |
-                static_cast<uint8_t>(raw[4]);
-
-            parsed.flags = HeaderFlags::from(raw[8]);
-            parsed.payloadType = static_cast<PayloadType>(raw[9]);
-
-            return parsed;
-        }
+        static Header from(String raw);
 
         // Creates a packet header to send to the specified address
-        static Header toAddress(Address sender, Address destination, HeaderFlags flags, PayloadType type)
-        {
-            Header header;
-            header.destination = destination;
-            header.flags = flags;
-            header.payloadType = type;
-
-            return header;
-        }
+        static Header toAddress(Address sender, Address destination, HeaderFlags flags, PayloadType type);
 
         // Creates a packet header to send to the gateway node (address: 0x0000)
         static Header toGateway(Address sender, HeaderFlags flags, PayloadType type)
@@ -77,41 +33,12 @@ namespace Packet
 
         Address destination;
         Address sender;
-        uint32_t packetID;
+        uint32_t packetID; // initialize with random id
         HeaderFlags flags;
         PayloadType payloadType;
 
         // Use uint128?
         // Returns a string with length 12, with all the header data packed in
-        String encode()
-        {
-            char str[12];
-
-            // Destination address
-            str[0] = destination & 0xff;
-            str[1] = (destination >> 8) & 0xff;
-
-            // Sender address
-            str[2] = sender & 0xff;
-            str[3] = (sender >> 8) & 0xff;
-
-            // Packet ID
-            str[4] = packetID & 0xff;
-            str[5] = (packetID >> 8) & 0xff;
-            str[6] = (packetID >> 16) & 0xff;
-            str[7] = (packetID >> 24) & 0xff;
-
-            // Flags
-            str[8] = flags.encode();
-
-            // Payload type
-            str[9] = payloadType & 0xff;
-
-            // Padding
-            str[10] = 0;
-            str[11] = 0;
-
-            return String(str);
-        }
+        String encode();
     };
 }
