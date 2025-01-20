@@ -84,5 +84,5 @@ String Header::encode()
     str[10] = 0;
     str[11] = 0;
 
-    return String(str);
+    return String(str, sizeof(str));
 }
