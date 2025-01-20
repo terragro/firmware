@@ -5,9 +5,7 @@
 
 namespace Packet
 {
-    using Payload = std::variant<ACKPayload, MessagePayload>;
-
-    struct BasePayload
+    struct Payload
     {
         String encode()
         {
@@ -16,7 +14,7 @@ namespace Packet
         PayloadType type;
     };
 
-    struct ACKPayload : BasePayload
+    struct ACKPayload : Payload
     {
         static Result<ACKPayload, ERR_CODE> from(String raw)
         {
@@ -32,7 +30,7 @@ namespace Packet
         }
     };
 
-    struct MessagePayload : BasePayload
+    struct MessagePayload : Payload
     {
         static Result<MessagePayload, ERR_CODE> from(String raw)
         {

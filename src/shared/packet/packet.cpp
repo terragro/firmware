@@ -20,7 +20,7 @@ Result<Packet::Packet, ERR_CODE> Packet::Packet::from(String raw)
     return {packet, ERR_NONE};
 }
 
-Result<Packet::Packet, ERR_CODE> Packet::Packet::ack(Address sender, Address destination)
+Packet::Packet Packet::Packet::ack(Address sender, Address destination)
 {
     HeaderFlags flags;
     flags.ack = false;
@@ -28,7 +28,7 @@ Result<Packet::Packet, ERR_CODE> Packet::Packet::ack(Address sender, Address des
 
     Header header = Header::toAddress(sender, destination, flags, ACK);
     Packet packet(header, payload);
-    return {packet, ERR_NONE};
+    return packet;
 }
 
 // Instance methods
@@ -36,7 +36,7 @@ Result<Packet::Packet, ERR_CODE> Packet::Packet::ack(Address sender, Address des
 String Packet::Packet::encode()
 {
     String packet = this->header.encode();
-    String payload = this->payload.encode();
+    String payload = this->payload.encode(); // TODO: Doesn't work correctly?
     packet.concat(payload);
 
     return packet;

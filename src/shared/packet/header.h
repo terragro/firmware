@@ -11,7 +11,7 @@ namespace Packet
 
         uint8_t hops = 0;           // The current amount of hops, max of 3 bits
         uint8_t maxHops = 3;        // The maximum amount of hops, defaults to 3, max of 3 bits
-        boolean ack = true;         // If the receiver should send back an ACK
+        boolean ack = true;         // If the receiver should send back an ACK, or expects any other kind of response
         boolean rebroadcast = true; // If the message should be rebroadcasted by other nodes
 
         uint8_t encode();
@@ -33,7 +33,7 @@ namespace Packet
 
         Address destination;
         Address sender;
-        uint32_t packetID; // initialize with random id
+        uint32_t packetID = 0;
         HeaderFlags flags;
         PayloadType payloadType;
 

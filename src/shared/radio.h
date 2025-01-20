@@ -1,3 +1,4 @@
+#include <vector>
 #include <queue>
 #include <deque>
 #include <RadioLib.h>
@@ -15,6 +16,7 @@ using namespace std;
 #define RADIO_OUTPUT_POWER 22
 
 #define TRANSMIT_TIMEOUT 3000
+#define ACK_TIMEOUT 30000
 
 enum RADIO_STATE
 {
@@ -34,8 +36,10 @@ private:
     Radio &operator=(const Radio &) = delete;
 
     deque<Packet::Packet> transmitQueue;
+    vector<Packet::Packet> transmittedAwaiting;
 
     uint16_t transmitInternal(Packet::Packet packet);
+    void handleReceived(Packet::Packet packet);
 
 public:
     // static side
