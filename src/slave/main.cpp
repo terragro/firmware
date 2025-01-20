@@ -63,7 +63,7 @@ void loop()
         if (radio.state == RADIO_READY)
         {
             Packet::HeaderFlags flags;
-            Packet::Header header = Packet::Header::toGateway(0x01, flags, Packet::MESSAGE);
+            Packet::Header header = Packet::Header::toGateway(radio.address, flags, Packet::MESSAGE);
             Packet::MessagePayload payload;
             payload.data = "Hello, world!";
             Packet::Packet packet(header, payload);

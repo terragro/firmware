@@ -48,9 +48,8 @@ void loop()
 
     if (radio.received.size() > 0)
     {
-        String packet = radio.received.shift();
-        Serial.print("Processed packet: ");
-        Serial.println(packet);
+        Packet::Packet &packet = radio.received.front();
+        radio.received.pop();
 
         digitalWrite(BOARD_LED, LOW);
         delay(100);
@@ -61,11 +60,21 @@ void loop()
     if (state == LOW && pressed == false)
     {
         pressed = true;
-        if (radio.ready)
-            radio.transmit("Hello world");
+        if (radio.state == RADIO_READY)
+        {
+            Packet::HeaderFlags flags;
+            Packet::Header header = Packet::Header::toAddress(radio.address, 0x01, flags, Packet::MESSAGE);
+            Packet::MessagePayload payload;
+            payload.data = "Hello, world!";
+            Packet::Packet packet(header, payload);
+
+            radio.transmit(packet);
+        }
     }
     else if (state == HIGH)
     {
         pressed = false;
     }
+
+    // delay(100);
 }
