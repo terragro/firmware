@@ -3,7 +3,6 @@
 #include <deque>
 #include <RadioLib.h>
 #include "packet/packet.h"
-#include "queue.h"
 #include "LoRaBoards.h"
 
 using namespace std;
