@@ -19,6 +19,16 @@ void printStr(String str)
     printf("\n");
 }
 
+void printBuffer(uint8_t *buffer, size_t len)
+{
+    for (size_t i = 0; i < len; i++)
+    {
+        Serial.print(buffer[i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+
 uint16_t Radio::begin(Packet::Address address)
 {
     this->address = address;
@@ -38,11 +48,14 @@ uint16_t Radio::begin(Packet::Address address)
 
 uint16_t Radio::transmitInternal(Packet::Packet packet)
 {
-    String raw = packet.encode();
-    packet.timestamp = millis();
     Serial.println("Transmitting packet...");
-    printStr(raw);
-    int state = this->radio.startTransmit(raw);
+    packet.timestamp = millis();
+
+    uint8_t buffer[packet.size];
+    packet.encode(buffer);
+    printBuffer(buffer, sizeof(buffer));
+
+    int state = this->radio.startTransmit(buffer, sizeof(buffer));
     if (state != RADIOLIB_ERR_NONE)
     {
         packet.state = Packet::PACKET_TRANSMITTING_FAILED;
@@ -71,7 +84,30 @@ uint16_t Radio::transmit(Packet::Packet packet)
     return RADIOLIB_ERR_NONE;
 }
 
-void Radio::handleReceived(Packet::Packet packet)
+uint16_t Radio::parseReceived(Packet::Packet &packet)
+{
+    size_t size = this->radio.getPacketLength();
+    uint8_t buffer[size];
+    uint16_t state = this->radio.readData(buffer, size);
+
+    if (state != RADIOLIB_ERR_NONE)
+    {
+        printf("Error processing packet, Radiolib err: %u\n", state);
+        return state;
+    }
+
+    auto res = Packet::Packet::from(buffer, sizeof(buffer));
+    if (res.second != Packet::ERR_NONE)
+    {
+        printf("Error parsing packet, internal err: %u\n", res.second);
+        return res.second;
+    }
+
+    packet = res.first;
+    return 0;
+}
+
+void Radio::processReceivedPacket(Packet::Packet packet)
 {
     // Finds if any packets are awaiting for this response (ACK)
     auto existing = std::find_if(
@@ -113,7 +149,7 @@ void Radio::process()
 
         if (this->state == RADIO_TRANSMITTING && this->transmitQueue.size() == 0)
         {
-            this->state == RADIO_IDLE;
+            this->state = RADIO_IDLE;
             this->radio.startReceive();
         }
         else if (this->state == RADIO_TRANSMITTING)
@@ -140,23 +176,11 @@ void Radio::process()
             this->state = RADIO_IDLE;
             this->radio.startReceive();
         }
-        else
+        else // Received a packet
         {
-            String str;
-            int state = radio.readData(str);
-            if (state == RADIOLIB_ERR_NONE)
-            {
-                printStr(str);
-                Packet::Result<Packet::Packet, Packet::ERR_CODE> res = Packet::Packet::from(str);
-                Packet::ERR_CODE err = res.second;
-                if (err == Packet::ERR_NONE)
-                    this->handleReceived(res.first);
-                else
-                    printf("Error parsing packet, internal err: %u\n", err);
-            }
-            else
-                printf("Error processing packet, Radiolib err: %u\n", state);
-
+            Packet::Packet packet;
+            this->parseReceived(packet);
+            this->processReceivedPacket(packet);
             this->radio.startReceive();
         }
     }

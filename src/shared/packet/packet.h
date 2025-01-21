@@ -19,24 +19,26 @@ namespace Packet
     class Packet
     {
     private:
-        Packet() {}
-
     public:
         // Creates a Packet instance from the raw packet
-        static Result<Packet, ERR_CODE> from(String raw);
+        static std::pair<Packet, ERR_CODE> from(uint8_t *buffer, size_t size);
 
         // Creates a simple ACK message to `destination`
         static Packet ack(Address sender, Address destination);
 
+        Packet() {}
         Packet(Header header, Payload payload) : header(header), payload(payload) {}
 
         // instance side
 
         Header header;
         Payload payload;
+        // TODO: set this on construct with correct payload size
+        // The buffer size for this packet
+        size_t size = 12;
         unsigned long timestamp;
         STATE state = PACKET_CREATED;
 
-        String encode();
+        void encode(uint8_t *buffer);
     };
 }

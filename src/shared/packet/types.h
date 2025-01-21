@@ -1,12 +1,10 @@
 #include <utility>
+#include <memory>
 #include <RadioLib.h>
 
 namespace Packet
 {
     using Address = uint16_t;
-
-    template <typename T, typename E>
-    using Result = std::pair<T, E>;
 
     enum PayloadType
     {
@@ -21,3 +19,13 @@ namespace Packet
         ERR_INVALID_PAYLOAD_TYPE = 2,
     };
 }
+
+template <typename T, typename E>
+class Result
+{
+public:
+    Result(T *value, E *err) : value(value), err(err) {}
+
+    T *value;
+    E *err;
+};

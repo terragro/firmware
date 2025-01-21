@@ -23,7 +23,7 @@ uint8_t HeaderFlags::encode()
     return result;
 }
 
-Header Header::from(String raw)
+Header Header::from(uint8_t *raw)
 {
     Header parsed;
     parsed.destination =
@@ -56,33 +56,29 @@ Header Header::toAddress(Address sender, Address destination, HeaderFlags flags,
     return header;
 }
 
-String Header::encode()
+void Header::encode(uint8_t *data)
 {
-    char str[12];
-
     // Destination address
-    str[0] = destination & 0xff;
-    str[1] = (destination >> 8) & 0xff;
+    data[0] = destination & 0xff;
+    data[1] = (destination >> 8) & 0xff;
 
     // Sender address
-    str[2] = sender & 0xff;
-    str[3] = (sender >> 8) & 0xff;
+    data[2] = sender & 0xff;
+    data[3] = (sender >> 8) & 0xff;
 
     // Packet ID
-    str[4] = packetID & 0xff;
-    str[5] = (packetID >> 8) & 0xff;
-    str[6] = (packetID >> 16) & 0xff;
-    str[7] = (packetID >> 24) & 0xff;
+    data[4] = packetID & 0xff;
+    data[5] = (packetID >> 8) & 0xff;
+    data[6] = (packetID >> 16) & 0xff;
+    data[7] = (packetID >> 24) & 0xff;
 
     // Flags
-    str[8] = flags.encode();
+    data[8] = flags.encode();
 
     // Payload type
-    str[9] = payloadType & 0xff;
+    data[9] = payloadType & 0xff;
 
     // Padding
-    str[10] = 0;
-    str[11] = 0;
-
-    return String(str, sizeof(str));
+    data[10] = 0;
+    data[11] = 0;
 }

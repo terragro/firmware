@@ -20,7 +20,7 @@ namespace Packet
     class Header
     {
     public:
-        static Header from(String raw);
+        static Header from(uint8_t *buffer);
 
         // Creates a packet header to send to the specified address
         static Header toAddress(Address sender, Address destination, HeaderFlags flags, PayloadType type);
@@ -37,8 +37,7 @@ namespace Packet
         HeaderFlags flags;
         PayloadType payloadType;
 
-        // Use uint128?
         // Returns a string with length 12, with all the header data packed in
-        String encode();
+        void encode(uint8_t *buffer);
     };
 }

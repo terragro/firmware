@@ -16,7 +16,7 @@ namespace Packet
 
     struct ACKPayload : Payload
     {
-        static Result<ACKPayload, ERR_CODE> from(String raw)
+        static std::pair<ACKPayload, ERR_CODE> from(String raw)
         {
             ACKPayload payload;
             return {payload, ERR_NONE};
@@ -32,7 +32,7 @@ namespace Packet
 
     struct MessagePayload : Payload
     {
-        static Result<MessagePayload, ERR_CODE> from(String raw)
+        static std::pair<MessagePayload, ERR_CODE> from(String raw)
         {
             MessagePayload payload;
             payload.data = raw;
@@ -48,5 +48,5 @@ namespace Packet
         }
     };
 
-    Result<Payload, ERR_CODE> parsePayload(Header header, String raw);
+    std::pair<Payload, ERR_CODE> parsePayload(Header header, String raw);
 }

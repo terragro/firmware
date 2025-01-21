@@ -38,7 +38,8 @@ private:
     vector<Packet::Packet> transmittedAwaiting;
 
     uint16_t transmitInternal(Packet::Packet packet);
-    void handleReceived(Packet::Packet packet);
+    uint16_t parseReceived(Packet::Packet &packet);
+    void processReceivedPacket(Packet::Packet packet);
 
 public:
     // static side

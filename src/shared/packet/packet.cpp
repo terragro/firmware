@@ -4,17 +4,17 @@ using namespace Packet;
 
 // Static methods
 
-Result<Packet::Packet, ERR_CODE> Packet::Packet::from(String raw)
+std::pair<Packet::Packet, ERR_CODE> Packet::Packet::from(uint8_t *buffer, size_t size)
 {
-    if (sizeof(raw) < 12)
+    if (size < 12)
         return {Packet{}, ERR_INVALID_RAW_DATA};
 
-    Header header = Header::from(raw);
+    Header header = Header::from(buffer);
     Payload payload;
     ERR_CODE err;
-    std::tie(payload, err) = parsePayload(header, raw.substring(12));
+    /* std::tie(payload, err) = parsePayload(header, buffer);
     if (err != ERR_NONE)
-        return {Packet{}, err};
+        return {Packet{}, err}; */
 
     Packet packet(header, payload);
     return {packet, ERR_NONE};
@@ -33,11 +33,8 @@ Packet::Packet Packet::Packet::ack(Address sender, Address destination)
 
 // Instance methods
 
-String Packet::Packet::encode()
+void Packet::Packet::encode(uint8_t *data)
 {
-    String packet = this->header.encode();
-    String payload = this->payload.encode(); // TODO: Doesn't work correctly?
-    packet.concat(payload);
-
-    return packet;
+    this->header.encode(data);
+    // this->payload.encode(data);
 }

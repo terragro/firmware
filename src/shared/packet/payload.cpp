@@ -2,7 +2,7 @@
 
 namespace Packet
 {
-    Result<Payload, ERR_CODE> parsePayload(Header header, String raw)
+    std::pair<Payload, ERR_CODE> parsePayload(Header header, String raw)
     {
         switch (header.payloadType)
         {
