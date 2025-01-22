@@ -12,9 +12,9 @@ std::pair<Packet::Packet, ERR_CODE> Packet::Packet::from(uint8_t *buffer, size_t
     Header header = Header::from(buffer);
     Payload payload;
     ERR_CODE err;
-    /* std::tie(payload, err) = parsePayload(header, buffer);
+    std::tie(payload, err) = parsePayload(header, buffer, size);
     if (err != ERR_NONE)
-        return {Packet{}, err}; */
+        return {Packet{}, err};
 
     Packet packet(header, payload);
     return {packet, ERR_NONE};
@@ -36,5 +36,5 @@ Packet::Packet Packet::Packet::ack(Address sender, Address destination)
 void Packet::Packet::encode(uint8_t *data)
 {
     this->header.encode(data);
-    // this->payload.encode(data);
+    this->payload.encode(data);
 }

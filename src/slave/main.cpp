@@ -50,6 +50,8 @@ void loop()
     {
         Packet::Packet &packet = radio.received.front();
         radio.received.pop();
+        if (packet.header.payloadType == Packet::MESSAGE)
+            Serial.println(packet.payload.data);
 
         digitalWrite(BOARD_LED, LOW);
         delay(100);
@@ -64,8 +66,7 @@ void loop()
         {
             Packet::HeaderFlags flags;
             Packet::Header header = Packet::Header::toGateway(radio.address, flags, Packet::MESSAGE);
-            Packet::MessagePayload payload;
-            payload.data = "Hello, world!";
+            Packet::MessagePayload payload("Hello, world!");
             Packet::Packet packet(header, payload);
 
             radio.transmit(packet);

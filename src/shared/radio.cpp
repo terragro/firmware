@@ -122,6 +122,8 @@ void Radio::processReceivedPacket(Packet::Packet packet)
     {
         existing->state = Packet::PACKET_DONE;
         this->transmittedAwaiting.erase(existing);
+        printf("Received ACK\n");
+        return;
     }
 
     if (packet.header.destination == this->address)
@@ -132,6 +134,7 @@ void Radio::processReceivedPacket(Packet::Packet packet)
         if (packet.header.flags.ack)
         {
             Packet::Packet ackPacket = Packet::Packet::ack(this->address, packet.header.sender);
+            delay(200);
             this->transmit(ackPacket);
         }
     }
@@ -181,7 +184,6 @@ void Radio::process()
             Packet::Packet packet;
             this->parseReceived(packet);
             this->processReceivedPacket(packet);
-            this->radio.startReceive();
         }
     }
 

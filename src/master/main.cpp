@@ -64,8 +64,7 @@ void loop()
         {
             Packet::HeaderFlags flags;
             Packet::Header header = Packet::Header::toAddress(radio.address, 0x01, flags, Packet::MESSAGE);
-            Packet::MessagePayload payload;
-            payload.data = "Hello, world!";
+            Packet::MessagePayload payload("Hello, slave!");
             Packet::Packet packet(header, payload);
 
             radio.transmit(packet);
