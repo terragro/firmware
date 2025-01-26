@@ -42,6 +42,8 @@ void setup()
 
 bool pressed = false;
 
+Packet::Pump::State pumpState = Packet::Pump::OFF;
+
 void loop()
 {
     radio.process();
@@ -62,9 +64,22 @@ void loop()
         pressed = true;
         if (radio.state == RADIO_READY)
         {
+            if (pumpState == Packet::Pump::OFF)
+            {
+                pumpState = Packet::Pump::IN;
+            }
+            else if (pumpState == Packet::Pump::IN)
+            {
+                pumpState = Packet::Pump::OUT;
+            }
+            else if (pumpState == Packet::Pump::OUT)
+            {
+                pumpState = Packet::Pump::OFF;
+            }
+
             Packet::HeaderFlags flags;
-            Packet::Header header = Packet::Header::toAddress(radio.address, 0x01, flags, Packet::MESSAGE);
-            Packet::MessagePayload payload("Hello, slave!");
+            Packet::Header header = Packet::Header::toAddress(radio.address, 0x01, flags, Packet::TYPE_PUMP);
+            Packet::Pump::Payload payload(pumpState);
             Packet::Packet packet(header, payload);
 
             radio.transmit(packet);

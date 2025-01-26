@@ -27,15 +27,27 @@ namespace Packet
         static Packet ack(Address sender, Address destination);
 
         Packet() {}
-        Packet(Header header, Payload payload) : header(header), payload(payload) {}
+        Packet(Header header, Payload payload) : header(header), payload(payload)
+        {
+            this->size = 12 + payload.size;
+        }
+        Packet(Header header, uint8_t *buffer, size_t size) : header(header)
+        {
+            this->buffer = new uint8_t[size];
+            memcpy(this->buffer, buffer, size);
+            this->size = size;
+            this->incoming = true;
+        }
 
         // instance side
 
         Header header;
-        Payload payload;
-        // TODO: set this on construct with correct payload size
+        Payload payload = Payload{};
+        uint8_t *buffer = nullptr;
         // The buffer size for this packet
-        size_t size = 12;
+        size_t size;
+        bool incoming = false;
+
         unsigned long timestamp;
         STATE state = PACKET_CREATED;
 

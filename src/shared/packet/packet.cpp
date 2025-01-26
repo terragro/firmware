@@ -10,13 +10,7 @@ std::pair<Packet::Packet, ERR_CODE> Packet::Packet::from(uint8_t *buffer, size_t
         return {Packet{}, ERR_INVALID_RAW_DATA};
 
     Header header = Header::from(buffer);
-    Payload payload;
-    ERR_CODE err;
-    std::tie(payload, err) = parsePayload(header, buffer, size);
-    if (err != ERR_NONE)
-        return {Packet{}, err};
-
-    Packet packet(header, payload);
+    Packet packet(header, buffer, size);
     return {packet, ERR_NONE};
 }
 
@@ -26,7 +20,7 @@ Packet::Packet Packet::Packet::ack(Address sender, Address destination)
     flags.ack = false;
     ACKPayload payload;
 
-    Header header = Header::toAddress(sender, destination, flags, ACK);
+    Header header = Header::toAddress(sender, destination, flags, TYPE_ACK);
     Packet packet(header, payload);
     return packet;
 }

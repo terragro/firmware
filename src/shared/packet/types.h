@@ -8,8 +8,9 @@ namespace Packet
 
     enum PayloadType
     {
-        ACK = 0,
-        MESSAGE = 1,
+        TYPE_ACK = 0,
+        TYPE_MESSAGE = 1,
+        TYPE_PUMP = 2,
     };
 
     enum ERR_CODE

@@ -11,14 +11,6 @@ void setFlag()
     interrupt = true;
 }
 
-void printStr(String str)
-{
-    for (int i = 0; i < sizeof(str); i++)
-        printf("%02X ", (unsigned char)str[i]);
-
-    printf("\n");
-}
-
 void printBuffer(uint8_t *buffer, size_t len)
 {
     for (size_t i = 0; i < len; i++)
@@ -59,7 +51,7 @@ uint16_t Radio::transmitInternal(Packet::Packet packet)
     if (state != RADIOLIB_ERR_NONE)
     {
         packet.state = Packet::PACKET_TRANSMITTING_FAILED;
-        printf("Error transmitting packet: %u\n", state);
+        printf("Error transmitting packet: %i\n", state);
         this->radio.startReceive();
         return state;
     }
@@ -87,7 +79,7 @@ uint16_t Radio::transmit(Packet::Packet packet)
 uint16_t Radio::parseReceived(Packet::Packet &packet)
 {
     size_t size = this->radio.getPacketLength();
-    uint8_t buffer[size];
+    uint8_t buffer[size] = {};
     uint16_t state = this->radio.readData(buffer, size);
 
     if (state != RADIOLIB_ERR_NONE)
@@ -128,15 +120,16 @@ void Radio::processReceivedPacket(Packet::Packet packet)
 
     if (packet.header.destination == this->address)
     {
+        printf("Received incoming packet\n");
         this->received.push(packet);
-        Serial.println(packet.header.flags.ack);
 
-        if (packet.header.flags.ack)
+        // Disabled for now
+        /* if (packet.header.flags.ack)
         {
             Packet::Packet ackPacket = Packet::Packet::ack(this->address, packet.header.sender);
             delay(200);
             this->transmit(ackPacket);
-        }
+        } */
     }
     else if (packet.header.flags.rebroadcast)
     {

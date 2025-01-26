@@ -6,10 +6,12 @@ namespace Packet
     {
         switch (header.payloadType)
         {
-        case ACK:
+        case TYPE_ACK:
             return {ACKPayload(), ERR_NONE};
-        case MESSAGE:
-            return {MessagePayload::from(buffer), ERR_NONE};
+        case TYPE_MESSAGE:
+            return {MessagePayload::from(buffer, size), ERR_NONE};
+        case TYPE_PUMP:
+            return {Pump::Payload::from(buffer, size), ERR_NONE};
         default:
             return {Payload{}, ERR_INVALID_PAYLOAD_TYPE};
         }
