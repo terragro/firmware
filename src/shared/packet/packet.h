@@ -27,9 +27,9 @@ namespace Packet
         static Packet ack(Address sender, Address destination);
 
         Packet() {}
-        Packet(Header header, Payload payload) : header(header), payload(payload)
+        Packet(Header header, std::shared_ptr<Payload> payload) : header(header), payload(payload)
         {
-            this->size = 12 + payload.size;
+            this->size = 12 + payload->size;
         }
         Packet(Header header, uint8_t *buffer, size_t size) : header(header)
         {
@@ -42,7 +42,7 @@ namespace Packet
         // instance side
 
         Header header;
-        Payload payload = Payload{};
+        std::shared_ptr<Payload> payload;
         uint8_t *buffer = nullptr;
         // The buffer size for this packet
         size_t size;

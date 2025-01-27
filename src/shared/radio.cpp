@@ -43,7 +43,7 @@ uint16_t Radio::transmitInternal(Packet::Packet packet)
     Serial.println("Transmitting packet...");
     packet.timestamp = millis();
 
-    uint8_t buffer[packet.size];
+    uint8_t buffer[packet.size] = {};
     packet.encode(buffer);
     printBuffer(buffer, sizeof(buffer));
 

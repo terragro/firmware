@@ -9,7 +9,7 @@ namespace Packet
     public:
         Payload() {}
         virtual ~Payload() {}
-        virtual void encode(uint8_t *buffer) {}
+        virtual void encode(uint8_t *buffer) = 0;
 
         PayloadType type;
         size_t size;
@@ -26,6 +26,8 @@ namespace Packet
         ACKPayload() : Payload(TYPE_ACK, 0)
         {
         }
+
+        void encode(uint8_t *buffer) override {}
     };
 
     class MessagePayload : public Payload
@@ -44,46 +46,43 @@ namespace Packet
 
         String data;
 
-        void encode(uint8_t *buffer)
+        void encode(uint8_t *buffer) override
         {
             const char *cstr = this->data.c_str();
             memcpy(buffer + 12, cstr, this->size + 12);
         }
     };
 
-    namespace Pump
+    class PumpPayload : public Payload
     {
-        enum State
+    public:
+        enum class State
         {
             OFF = 0,
             IN = 1,
             OUT = 2
         };
 
-        class Payload : public Packet::Payload
+        static PumpPayload from(uint8_t *buffer, size_t size)
         {
-        public:
-            static Payload from(uint8_t *buffer, size_t size)
-            {
-                State state = static_cast<State>(buffer[12]);
-                return Payload(state);
-            }
+            State state = static_cast<State>(buffer[12]);
+            return PumpPayload(state);
+        }
 
-            Payload(State state) : Packet::Payload(TYPE_PUMP, 1)
-            {
-                this->state = state;
-            }
+        PumpPayload(State state) : Payload(TYPE_PUMP, 1)
+        {
+            this->state = state;
+        }
 
-            State state;
+        State state;
 
-            void encode(uint8_t *buffer)
-            {
-                // TODO: Doesn't actually get called?
-                Serial.println(this->state);
-                buffer[12] = static_cast<uint8_t>(this->state);
-            }
-        };
-    }
+        void encode(uint8_t *buffer) override
+        {
+            // TODO: Doesn't actually get called?
+            Serial.println((uint8_t)this->state);
+            buffer[12] = static_cast<uint8_t>(this->state);
+        }
+    };
 
-    std::pair<Payload, ERR_CODE> parsePayload(Header header, uint8_t *buffer, size_t size);
+    std::pair<std::shared_ptr<Payload>, ERR_CODE> parsePayload(Header header, uint8_t *buffer, size_t size);
 }

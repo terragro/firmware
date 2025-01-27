@@ -48,18 +48,8 @@ void setup()
     Serial.println("LoRa board succesfully initialized");
 }
 
-Packet::Pump::State state = Packet::Pump::OFF;
+Packet::PumpPayload::State state = Packet::PumpPayload::State::OFF;
 bool pressed = false;
-
-void printBuffer_(uint8_t *buffer, size_t len)
-{
-    for (size_t i = 0; i < len; i++)
-    {
-        Serial.print(buffer[i], HEX);
-        Serial.print(" ");
-    }
-    Serial.println();
-}
 
 void loop()
 {
@@ -70,29 +60,32 @@ void loop()
         printf("Processing incoming packet\n");
         Packet::Packet packet = radio.received.front();
         radio.received.pop();
-        printBuffer_(packet.buffer, packet.size);
 
         if (packet.header.payloadType == Packet::TYPE_PUMP && packet.incoming)
         {
-            Packet::Pump::Payload payload = Packet::Pump::Payload::from(packet.buffer, packet.size);
-            printf("Setting state: %02X\n", payload.state);
+            Packet::PumpPayload payload = Packet::PumpPayload::from(packet.buffer, packet.size);
+            Serial.print("Setting state: ");
+            Serial.println((uint8_t)payload.state);
 
             if (payload.state != state)
             {
-                if (payload.state == Packet::Pump::State::OFF)
+                if (payload.state == Packet::PumpPayload::State::OFF)
                 {
                     digitalWrite(RELAY_PUMP_IN, HIGH);
                     digitalWrite(RELAY_PUMP_OUT, HIGH);
+                    state = Packet::PumpPayload::State::OFF;
                 }
-                else if (payload.state == Packet::Pump::State::IN)
+                else if (payload.state == Packet::PumpPayload::State::IN)
                 {
                     digitalWrite(RELAY_PUMP_IN, LOW);
                     digitalWrite(RELAY_PUMP_OUT, HIGH);
+                    state = Packet::PumpPayload::State::IN;
                 }
-                else if (payload.state == Packet::Pump::State::OUT)
+                else if (payload.state == Packet::PumpPayload::State::OUT)
                 {
                     digitalWrite(RELAY_PUMP_IN, HIGH);
                     digitalWrite(RELAY_PUMP_OUT, LOW);
+                    state = Packet::PumpPayload::State::OUT;
                 }
             }
         }
@@ -110,7 +103,7 @@ void loop()
         {
             Packet::HeaderFlags flags;
             Packet::Header header = Packet::Header::toGateway(radio.address, flags, Packet::TYPE_MESSAGE);
-            Packet::MessagePayload payload("Hello, world!");
+            std::shared_ptr<Packet::MessagePayload> payload = std::make_shared<Packet::MessagePayload>(Packet::MessagePayload("Hello, world!"));
             Packet::Packet packet(header, payload);
 
             radio.transmit(packet);

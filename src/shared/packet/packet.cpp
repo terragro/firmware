@@ -18,7 +18,7 @@ Packet::Packet Packet::Packet::ack(Address sender, Address destination)
 {
     HeaderFlags flags;
     flags.ack = false;
-    ACKPayload payload;
+    std::shared_ptr<ACKPayload> payload;
 
     Header header = Header::toAddress(sender, destination, flags, TYPE_ACK);
     Packet packet(header, payload);
@@ -30,5 +30,5 @@ Packet::Packet Packet::Packet::ack(Address sender, Address destination)
 void Packet::Packet::encode(uint8_t *data)
 {
     this->header.encode(data);
-    this->payload.encode(data);
+    this->payload->encode(data);
 }
